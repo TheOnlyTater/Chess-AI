@@ -4,6 +4,7 @@ from tensorflow import keras
 import random as rd
 import matplotlib.pyplot as plt
 import chess
+import math
 
 rd.seed(42)
 np.random.seed(42)
@@ -50,7 +51,7 @@ def miniMax(board, depth, maximize):
         return 10000
     elif (board.is_stalemate() or board.is_insufficient_material()):
         return 0
-
+    
     if (maximize):
         for move in board.legal_moves:
             board.push(move)
@@ -70,7 +71,7 @@ def getNextMove(depth, board, maximize):
 
     if (not maximize):
         bestValue = 99999
-
+        
     for move in legals:
             board.push(move)
             value = miniMax(board, depth - 1, (not maximize))
@@ -113,3 +114,91 @@ def alphaBeta(board, depth, alpha, beta, maximize):
             if (beta <= alpha) return bestValue
 
         return bestValue
+    
+#Monte-Carlo Tree search
+#(MATH) Future comment
+class TreeNode():
+    def __init__(self, board):
+        self.M = 0  #current evaluation
+        self.V = 0  #visit count
+        self.visitedMovesAndNodes = []
+        self.nonVisitedNodes = []
+        self.board = board
+        self.parent = None
+
+        for m in self.board.legal_moves:
+            self.nonVisitedLegalMoves.append(m)
+
+    def isMCTSLeafNode(self):
+        return len(self.nonVisitedLegalMoves) ! = 0
+
+    def isTerminalNode(self):
+        return len(self.nonVisitedLegalMoves) == 0 and len(self.visitedMovesAndNodes)
+
+def uctValue(node, parent):
+    val = node.M + 1.4142 * math.sqrt(math.log(parent.V) / node.V)
+    return val
+
+def select(node):
+    if (node.isMCTSLeafNode() or node.isTerminalNode()):
+        return node
+
+    else:
+        maxUctChild = None
+        maxUctValue = -1000000
+        for move, child in node.visitedMovesAndNodes:
+            uctValChild = uctValue(child, node)
+            if (uctValChild > maxUctChild):
+                maxUctChild = uctValChild
+                maxUCtValue = uctValChild
+        if(maxUctChild == None):
+            raise ValueError("Unable to find child with best UCT value")
+
+        else:
+            return select(maxUCtChild)
+
+
+def expand(node):
+    moveToExpand = node.nonVisitedLegalMoves.pop()
+    board = node.board.copy()
+    board.push(moveToExpand)
+    childNode = TreeNode(board)
+    childNode.parent = Node
+    node.visitedMovesAndNodes.append((moveToexpand, childNode))
+    return childNode
+
+def simulate(Node):
+    board = node.board.copy()
+    while (board.outcome(claim_draw = True) == None):
+        ls = []
+        for m in board.legal_moves:
+            ls.append(m)
+
+        move = rd.choice(ls)
+        board.push(move)
+
+    payout = 0.5
+    o = board.outcome(claim_draw = True)
+    if (o.winner == PLAYER):
+        payout = 1
+
+    elif (o.winner == OPPONENT):
+        payout = 0.5
+
+    elif (o.winner == None):
+        payout = 0
+    return payout
+
+
+def backpropagate(node, payout):
+    node.M = ((node.M * node.V) + payout) / (node.V + 1)
+    node.V += 1
+    if (node.parent != None):
+        return backpropagate(node.parent, payout)
+
+
+
+
+    
+
+
