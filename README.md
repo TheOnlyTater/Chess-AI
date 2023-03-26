@@ -20,7 +20,7 @@
   5. depending on the partial derivative, increase or decrease slightly each weight 𝑤𝑖
 
 # Goals
-  Get a deeper understanding of Back-Propegation by Gradient Descent, minimax algorithm, learning rate and bias
+  Get a deeper understanding of Back-Propegation by Gradient Descent, minimax algorithm, learning rate, alpha-beta search and bias
   Make the Neural Network play chess(potentially beat humans)
   
   Bonus:
