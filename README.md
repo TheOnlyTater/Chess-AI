@@ -14,7 +14,7 @@
 
 # Neural Network Plan
   1. Intilize network with random weights
-  2. Take a batch of examples, and compute the error of the network w.r.t. these examples
+  2. Take a batch of examples, and compute the error of the network w.r.t.
   3. compute the global error by averaging over all individual errors
   4. for all weights 𝑤𝑖 , compute the partial derivative w.r.t. 𝑤𝑖
   5. depending on the partial derivative, increase or decrease slightly each weight 𝑤𝑖
