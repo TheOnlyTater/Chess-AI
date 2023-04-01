@@ -122,7 +122,7 @@ class ChessNeuralNetwork(NeuralNetwork):
             relu = keras.layers.ReLU()(bn)
             return relu
 
-        def residual_block(x: Tensor, filters_out: int, filters: int, kernel_size: int) -> Tensor:
+        def residualBlock(x: Tensor, filters_out: int, filters: int, kernel_size: int) -> Tensor:
             y = x
             y = keras.layers.Conv2D(kernel_size=(kernel_size, kernel_size), filters=filters, padding="same")(y)
 
