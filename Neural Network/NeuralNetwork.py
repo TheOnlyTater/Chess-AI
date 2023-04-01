@@ -7,6 +7,8 @@ import random as rd
 import os
 import time
 import logging
+from abc import abstractmethod
+import hashlib
 
 import matplotlib.pyplot as plt
 from chess import PIECE_TYPES, MOVES_MAP, MoveRecord
@@ -16,6 +18,9 @@ from chess import PIECE_TYPES, MOVES_MAP, MoveRecord
 #add txt file path
 #add json file path
 #add game rules class
+
+tf.compat.v1.disable_eager_execution()
+assert keras.regularizers
 
 reg = keras.regularizers.l2(0.01)   #prevents model from containing large weights
 optimizer = "adam"  
@@ -28,8 +33,8 @@ class NN(object):
         super().__init__()
         
         #template values
-        self.trainAccThreshold = None
-        self.validateAccThreshold = None
+        self.trainAccThreshold = 0.8
+        self.validateAccThreshold = 0.8
 
         #make dir
         self.storePrefix = os.path.join(path)
@@ -39,7 +44,7 @@ class NN(object):
             logging.info("Loading model from: %s", file)
             self.model = tf.keras.models.load_model(file)
         else:
-            logging.info("Starting with clean mode in: %s", file)
+            logging.info("Starting with clean model in: %s", file)
             with open(self.storePrefix + ".json", 'w') as fp:
                 fp.write(js)    #placeholder for now
             with open(self.storePrefix + ".txt", 'w') as fp:
@@ -80,7 +85,12 @@ class NN(object):
         msg = "Accuracy os too low: %.3f < %s" % (res[1], self.validateAccThreshold)
         assert res[1] >= self.validateAccThreshold, msg
 
-
+    @abstractmethod
+    def dataToTrainingSet(self, data, isinstance=False)
+        pass
+    @abstractmethod
+    def getNeuralNetwork(self):
+        pass
 
 class ChessNeuralNetwork(NeuralNetwork):
     
@@ -96,7 +106,71 @@ class ChessNeuralNetwork(NeuralNetwork):
         model.compile(optimizer=optimizer, loss="mse", metrics=["accuracy"])
 
         return model
+    def residualNetwork(self, position):
+        t = position
+        params = [
+            (12, 3, 16),
+            (16, 4, 20),
+            (20, 5, 24),
+            (24, 6, 28),
+            (28, 7, 32),
+        ]
+        a = "relu" 
+                                             
+        def reluBatchNormalization(inputs: Tensor) -> Tensor:
+            bn = keras.layers.BatchNormalization()(inputs)
+            relu = keras.layers.ReLU()(bn)
+            return relu
 
+        def residual_block(x: Tensor, filters_out: int, filters: int, kernel_size: int) -> Tensor:
+            y = x
+            y = keras.layers.Conv2D(kernel_size=(kernel_size, kernel_size), filters=filters, padding="same")(y)
+
+            y = keras.layers.Add()([y, x])
+            y = reluBatchNormalization(y)
+
+            y = keras.layers.Conv2D(kernel_size=(kernel_size, kernel_size), filters=filters_out, padding="same")(y)
+            y = reluBatchNormalization(y)
+
+            return y
+
+        for param in params:
+            numFilt, kernelS, downsample, = param
+            t = residual_block(position, filters_out=downsample, filters=numFilt, kernel_size=kernelS)
+
+        t = layers.Flatten()(t)
+        return t
+                                             
+    def convNeuralNetwork(self, position):
+        activ = "relu"
+        conv31 = layers.Conv2D(8, kernel_size=(3, 3), activation=activ, kernel_regularizer=reg)(position)
+        conv32 = layers.Conv2D(16, kernel_size=(3, 3), activation=activ, kernel_regularizer=reg)(conv31)
+        conv33 = layers.Conv2D(32, kernel_size=(3, 3), activation=activ, kernel_regularizer=reg)(conv32)
+        flat3 = layers.Flatten()(conv33)
+
+        conv41 = layers.Conv2D(8, kernel_size=(4, 4), activation=activ, kernel_regularizer=reg)(position)
+        conv42 = layers.Conv2D(16, kernel_size=(4, 4), activation=activ, kernel_regularizer=reg)(conv41)
+        flat4 = layers.Flatten()(conv42)
+
+        conv51 = layers.Conv2D(8, kernel_size=(5, 5), activation=activ, kernel_regularizer=reg)(position)
+        conv52 = layers.Conv2D(16, kernel_size=(3, 3), activation=activ, kernel_regularizer=reg)(conv51)
+        flat5 = layers.Flatten()(conv52)
+
+        conv61 = layers.Conv2D(8, kernel_size=(6, 6), activation=activ, kernel_regularizer=reg)(position)
+        conv62 = layers.Conv2D(16, kernel_size=(3, 3), activation=activ, kernel_regularizer=reg)(conv61)
+        flat6 = layers.Flatten()(conv61)
+
+        conv71 = layers.Conv2D(8, kernel_size=(7, 7), activation=activ, kernel_regularizer=reg)(position)
+        conv72 = layers.Conv2D(16, kernel_size=(3, 3), activation=activ, kernel_regularizer=reg)(conv71)
+        flat7 = layers.Flatten()(conv71)
+
+        conv81 = layers.Conv2D(8, kernel_size=(8, 8), activation=activ, kernel_regularizer=reg)(position)
+        conv72 = layers.Conv2D(16, kernel_size=(3, 3), activation=activ, kernel_regularizer=reg)(conv71)
+        flat8 = layers.Flatten()(conv81)
+
+        return layers.concatenate([flat3, flat4, flat5, flat6, flat7, flat8])
+        
+                                             
     def dataToTrainingSet(self, data, inferance=False):
         lengthBatch = len(data)
 
