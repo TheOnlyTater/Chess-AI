@@ -23,6 +23,10 @@ assert regularizers
 reg = regularizers.l2(0.01)
 optimizer = "adam"  # sgd rmsprop adagrad adadelta adamax adam nadam
 
+# Easy explain
+# Creates a folder to save current and future models in. Saves the model in .hdf5,
+# json file with model information, and a png of the model. Has a function to train the model
+# on a datasett
 
 class neuralN(object):
     model: models.Model
@@ -114,7 +118,6 @@ class neuralN(object):
     @abstractmethod
     def dataToTrainingSet(self, data, is_inference=False):
         pass
-
 
 class chessNetwork(neuralN):
 
