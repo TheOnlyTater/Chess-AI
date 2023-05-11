@@ -1,0 +1,14 @@
+[Site "checkmate"]
+[Round "700"]
+[White "Lisa"]
+[Black "Stockfish"]
+[Result "0-1"]
+[FEN "rbqknnbr/pppppppp/8/8/8/8/PPPPPPPP/RBQKNNBR w KQkq - 0 1"]
+[Variant "Chess960"]
+
+1. Ne3 {0.00} f6 {0.98} 2. Nf3 {0.00} d5 {0.97} 3. Nf1 {0.00} c5 {1.00} 4.
+Ng5 {0.00} fxg5 {1.00} 5. b3 {0.00} Be5 {1.00} 6. Ne3 {0.00} Qc6 {1.00} 7.
+Nf1 {0.00} Bf6 {1.00} 8. b4 {0.00} Qa4 {1.00} 9. Ne3 {0.00} cxb4 {1.00} 10.
+h4 {0.01} Bxa1 {1.00} 11. Ke1 {0.00} gxh4 {1.00} 12. c4 {0.01} bxc3 {1.00} 13.
+Bf5 {0.00} Bb2 {1.00} 14. Bc2 {0.00} Bxc1 {1.00} 15. Bxh7 {0.00} cxd2+ {1.00}
+16. Kf1 {0.00} d1=R+ {1.00} 17. Nxd1 {0.00} Qxd1# {1.00} 0-1
