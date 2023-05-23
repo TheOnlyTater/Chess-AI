@@ -1,8 +1,10 @@
 from matplotlib import pyplot
+import numpy as np
+
 from chess.syzygy import open_tablebase, Tablebase
 from chess import pgn, SquareSet, SQUARES, Outcome
-import numpy as np
 import chess
+
 from typing import List, Optional
 from collections import Counter
 import sys
@@ -10,12 +12,14 @@ import os.path
 import logging
 import json
 import copy
+
 import collections
 
 
 mpl_logger = logging.getLogger('matplotlib')
 mpl_logger.setLevel(logging.WARNING)
 
+# Values for caputring each piece
 PIECE_VALUES = {
     chess.PAWN: 1,
     chess.KNIGHT: 3,
@@ -56,7 +60,7 @@ class stringExporter(pgn.StringExporter):
 
             self.force_movenumber = False
 
-
+# Creates a board that keeps track of all prior and current moves avalible
 class myBoard(chess.Board):
     move_stack: List[chess.Move]
 
@@ -72,11 +76,13 @@ class myBoard(chess.Board):
         if self.forced_result:
             return self.forced_result
         return super().outcome(claim_draw=claim_draw)
-
+    
+    # Sets the board to the inital fen
     def set_chess960_pos(self, sharnagl):
         super().set_chess960_pos(sharnagl)
         self.initial_fen = self.fen()
-
+    
+    # Writes a PGN to document a game
     def writePGN(self, wp, bp, fname, roundd):
         journal = pgn.Game.from_board(self)
         journal.headers.clear()
@@ -92,7 +98,8 @@ class myBoard(chess.Board):
         pgns = journal.accept(exporter)
         with open(fname, "w") as out:
             out.write(pgns)
-
+            
+    # Finds the reason for Chess game ending for the PGN exporter
     def explainGameEnd(self):
         if self.forced_result:
             comm = "SyzygyDB"
@@ -114,6 +121,7 @@ class myBoard(chess.Board):
         cnt = Counter(self._fens)
         return cnt[self._fens[-1]] >= 3
 
+    
     def can_claim_threefold_repetition2(self):
         transposition_key = self._transposition_key()
         transpositions = collections.Counter()
@@ -140,10 +148,12 @@ class myBoard(chess.Board):
 
         return False
 
+    # Checks if the same move has been repeted 5 times in a row
     def is_fivefold_repetition1(self):
         cnt = Counter(self._fens)
         return cnt[self._fens[-1]] >= 5
-
+    
+    # Claims a draw if there has been more then 100 moves or there could be draw
     def can_claim_draw1(self):
         return super().can_claim_draw() or self.fullmove_number > 100
 
@@ -173,7 +183,9 @@ class myBoard(chess.Board):
 
         pos.flags.writeable = False
         return pos
-
+    
+    # Creates a matrice of every piece attacked and defended for the NN
+    # Saves this infomation in MoveRecord
     def getAttackedDefended(self):
         attacked = np.full(64, 0.0)
         defended = np.full(64, 0.0)
@@ -190,7 +202,8 @@ class myBoard(chess.Board):
                 attacked[our_attacked] = 1.0
 
         return attacked, defended
-
+    
+    # Creates a matrice of all the current moves on the board indicated by a 1
     def getPossibleMoves(self):
         res = np.full(len(MOVES_MAP), 0.0)
         for move in self.generate_legal_moves():
@@ -255,7 +268,8 @@ def asTuple(x):
 def is_debug():
     return 'pydevd' in sys.modules or os.getenv("DEBUG")
 
-
+# Creates a sorted set of all the current possible moves
+# uses set to avoid duplicate moves
 def possibleMoves():
     res = set()
     for f in SQUARES:
