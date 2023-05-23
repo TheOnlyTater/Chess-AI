@@ -5,9 +5,9 @@ import time
 from abc import abstractmethod
 from operator import itemgetter
 from matplotlib import pyplot as plt
+import numpy as np
 
 import chess
-import numpy as np
 import tensorflow
 from chess import PIECE_TYPES
 from keras import Sequential, models, layers, regularizers, callbacks
@@ -16,14 +16,13 @@ from tensorflow import Tensor
 import tensorflow as tf
 from keras.optimizers import Adam
 from chessnn import moveRecord, MOVES_MAP
-from matplotlib import pyplot as plt
+
 tensorflow.compat.v1.disable_eager_execution()
 assert regularizers
 
 reg = regularizers.l2(0.01)
 optimizer = "adam"  # sgd rmsprop adagrad adadelta adamax adam nadam
 
-# Easy explain
 # Creates a folder to save current and future models in. Saves the model in .hdf5,
 # json file with model information, and a png of the model. Has a function to train the model
 # on a datasett
@@ -106,6 +105,7 @@ class neuralN(object):
         # if validationData is not None:
         #    self.validate(validationData)
 
+    # Checks if models wieghts and biases have been fitted to the data
     def validate(self, data):
         inputs, outputs = self.dataToTrainingSet(data, False)
 
@@ -120,7 +120,8 @@ class neuralN(object):
         pass
 
 class chessNetwork(neuralN):
-
+    # The network expects 12 different chess boards as inputs
+    # Then will process the data and log progress with MAE(mean squared evaluation) and accuracy
     def getNerualNetwork(self):
         boardShape = (8, 8, len(PIECE_TYPES) * 2)
         pos = layers.Input(shape=boardShape, name="position")
@@ -185,7 +186,6 @@ class chessNetwork(neuralN):
         return net
 
     def convolutionalNetwork(self, position):
-        # remove some layers
         activ = "relu"
         conv31 = layers.Conv2D(8, kernel_size=(
             3, 3), activation=activ, kernel_regularizer=reg)(position)
@@ -209,22 +209,21 @@ class chessNetwork(neuralN):
 
         conv61 = layers.Conv2D(8, kernel_size=(
             6, 6), activation=activ, kernel_regularizer=reg)(position)
-        # conv62 = layers.Conv2D(16, kernel_size=(3, 3), activation=activ, kernel_regularizer=reg)(conv61)
         flat6 = layers.Flatten()(conv61)
 
         conv71 = layers.Conv2D(8, kernel_size=(
             7, 7), activation=activ, kernel_regularizer=reg)(position)
-        # conv72 = layers.Conv2D(16, kernel_size=(3, 3), activation=activ, kernel_regularizer=reg)(conv71)
         flat7 = layers.Flatten()(conv71)
 
         conv81 = layers.Conv2D(8, kernel_size=(
             8, 8), activation=activ, kernel_regularizer=reg)(position)
-        # conv72 = layers.Conv2D(16, kernel_size=(3, 3), activation=activ, kernel_regularizer=reg)(conv71)
         flat8 = layers.Flatten()(conv81)
 
         conc = layers.concatenate([flat3, flat4, flat5, flat6, flat7, flat8])
         return conc
-
+    
+    # Goes thru each batch and creates a list from position as inputs 
+    # And uses the to positions and evaluation to correct weights and bias
     def dataToTrainingSet(self, data, is_inference=False):
         batchLength = len(data)
 
@@ -239,6 +238,7 @@ class chessNetwork(neuralN):
 
         return [inputPos], [outEvals]
 
+    
     def iterateThruMoves(self, scores):
         for idx, score in sorted(np.ndenumerate(scores), key=itemgetter(1), reverse=True):
             idx = idx[0]
